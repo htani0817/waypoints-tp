@@ -4,12 +4,14 @@ package com.example.waypointTp
 import com.example.waypointTp.i18n.Messages
 import com.example.waypointTp.repo.YamlWaypointRepository
 import com.example.waypointTp.ui.WaypointMenu
-import net.kyori.adventure.text.Component
+import com.example.waypointTp.ui.OpenMenuItemListener                 // ★ 追加
+import com.example.waypointTp.util.Keys                               // ★ 追加
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
+import org.bukkit.persistence.PersistentDataType                       // ★ 追加
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.UUID
 
@@ -18,6 +20,14 @@ class WpCommand(
     private val repo: YamlWaypointRepository,
     private val messages: Messages
 ) : CommandExecutor {
+
+    // ★ 追加：すでに専用アイテムを持っているか（PDC タグで判定）
+    private fun hasOpener(p: Player): Boolean {
+        return p.inventory.contents.any { stack ->
+            val meta = stack?.itemMeta ?: return@any false
+            meta.persistentDataContainer.has(Keys.WP_OPENER, PersistentDataType.BYTE)
+        }
+    }
 
     override fun onCommand(sender: CommandSender, cmd: Command, label: String, args: Array<out String>): Boolean {
         if (args.isEmpty()) { sender.sendMessage(messages.text("usage_wp")); return true }
@@ -90,7 +100,7 @@ class WpCommand(
                         sender.sendMessage(messages.text("world_not_found", mapOf("name" to worldName)))
                         return true
                     } else {
-                        world = w // Bukkit.getWorld(name) で取得。:contentReference[oaicite:1]{index=1}
+                        world = w
                     }
                 }
 
@@ -98,7 +108,7 @@ class WpCommand(
                 val minY = world.minHeight
                 val maxY = world.maxHeight - 1
                 if (y < minY) y = minY.toDouble()
-                if (y > maxY) y = maxY.toDouble() // WorldInfo#getMin/MaxHeight。:contentReference[oaicite:2]{index=2}
+                if (y > maxY) y = maxY.toDouble()
 
                 val id = UUID.randomUUID()
                 repo.saveById(
@@ -138,6 +148,50 @@ class WpCommand(
                 sender.sendMessage(messages.text("teleporting", mapOf("name" to target.name)))
                 sender.teleportAsync(target.location).thenAccept { ok ->
                     if (!ok) sender.sendMessage(messages.text("teleport_failed"))
+                }
+                return true
+            }
+            // ★ 追加：オープナー配布コマンド
+            "give" -> {
+                // /wp give [player]
+                val target: Player? = when {
+                    args.size >= 2 -> Bukkit.getPlayerExact(args[1])      // 完全一致で取得
+                    sender is Player -> sender
+                    else -> null
+                }
+                if (target == null) {
+                    sender.sendMessage(messages.text("player_not_found", mapOf("name" to (args.getOrNull(1) ?: ""))))
+                    return true
+                }
+
+                // 権限：自分へ=waypoints.opener、他人へ=waypoints.opener.others
+                val toSelf = sender is Player && sender.uniqueId == target.uniqueId
+                val needed = if (toSelf) "waypoints.opener" else "waypoints.opener.others"
+                if (sender is Player && !sender.hasPermission(needed)) {
+                    sender.sendMessage(messages.text("no_permission")); return true
+                }
+
+                // 重複配布を避ける（必要ならチェックを外す）
+                if (hasOpener(target)) {
+                    sender.sendMessage(messages.text("opener_already", mapOf("player" to target.name)))
+                    return true
+                }
+
+                val opener = OpenMenuItemListener.createOpenerItem()
+                val empty = target.inventory.firstEmpty()                 // 空きスロット。-1なら満杯
+                if (empty != -1) {
+                    target.inventory.setItem(empty, opener)
+                    target.updateInventory()
+                } else {
+                    target.world.dropItemNaturally(target.location, opener)
+                    sender.sendMessage(messages.text("inventory_full"))
+                }
+
+                if (toSelf) {
+                    sender.sendMessage(messages.text("opener_given_self"))
+                } else {
+                    sender.sendMessage(messages.text("opener_given_to", mapOf("player" to target.name)))
+                    target.sendMessage(messages.text("opener_given_self"))
                 }
                 return true
             }

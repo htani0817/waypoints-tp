@@ -10,7 +10,8 @@ import org.bukkit.entity.Player
 
 class WpTab(private val repo: YamlWaypointRepository) : TabCompleter {
 
-    private val roots = listOf("ui", "set", "tp", "tpp", "del", "reload")
+    // ★ 追加: give
+    private val roots = listOf("ui", "set", "tp", "tpp", "del", "reload", "give")
 
     override fun onTabComplete(sender: CommandSender, cmd: Command, alias: String, args: Array<out String>): MutableList<String> {
         return when (args.size) {
@@ -19,7 +20,7 @@ class WpTab(private val repo: YamlWaypointRepository) : TabCompleter {
             2 -> when (args[0].lowercase()) {
                 "tp", "del" ->
                     repo.allNames().filter { it.startsWith(args[1], ignoreCase = true) }.toMutableList()
-                "tpp" ->
+                "tpp", "give" ->
                     Bukkit.getOnlinePlayers().map { it.name }
                         .filter { it.startsWith(args[1], ignoreCase = true) }.toMutableList()
                 "set" -> mutableListOf("<name>")

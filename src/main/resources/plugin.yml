@@ -5,23 +5,30 @@ api-version: '1.21'
 commands:
   wp:
     description: Waypoint commands
-    usage: "/<command> [ui|set|tp|tpp|del|reload]\n/<command> set <name> [x y z] [yaw pitch] [world]"
+    usage: "/<command> [ui|set|tp|tpp|del|reload|give]\n/<command> set <name> [x y z] [yaw pitch] [world]"
     permission: waypoints.use    # ← この権限がある人が /wp を実行可能
     permission-message: You don't have permission.
 
 permissions:
   waypoints.use:
     description: ウェイポイント機能を使う（/wp 実行権）
-    default: true                 # ← 全員可
+    default: true
   waypoints.create:
     description: 座標を登録（/wp set）
-    default: true                 # ← 全員可
+    default: true
   waypoints.delete:
     description: 座標を削除（UIの右クリック削除）
-    default: true                 # ← 全員可
+    default: true
   waypoints.tpp:
     description: プレイヤーの場所へテレポート（/wp tpp）
-    default: true                 # ← 全員可
+    default: true
   waypoints.reload:
     description: 設定/メッセージ再読み込み（/wp reload）
-    default: op                   # ← 管理者のみ（全員可にしたい場合は true）
+    default: op
+  # ★ 追加：オープナー配布
+  waypoints.opener:
+    description: 自分にオープナーを配布（/wp give）
+    default: true
+  waypoints.opener.others:
+    description: 他人にオープナーを配布（/wp give <player>）
+    default: op

@@ -13,3 +13,8 @@ usage_wp_set_coords: "<yellow>使い方:</yellow> /wp set <name> [x y z] [yaw pi
 invalid_number: "<red>数値の解析に失敗しました。</red> x y z / yaw pitch は数値で入力してください。"
 world_not_found: "<red>ワールドが見つかりません:</red> <name>"
 saved_at: "<green><name></green> を登録しました。<gray>(x:<x> y:<y> z:<z> world:<world>)</gray>"
+player_not_found: "<red>プレイヤーが見つかりません:</red> <name>"
+opener_given_self: "<green>ウェイポイントメニューのアイテムを配布しました。</green>"
+opener_given_to: "<green><player></green> にウェイポイントメニューのアイテムを配布しました。"
+opener_already: "<yellow><player></yellow> は既にメニューアイテムを所持しています。"
+inventory_full: "<yellow>インベントリが満杯のため、足元にドロップしました。</yellow>"
