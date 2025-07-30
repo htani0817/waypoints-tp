@@ -1,0 +1,27 @@
+name: waypoint-tp
+version: '1.0-SNAPSHOT'
+main: com.example.waypointTp.WaypointTp
+api-version: '1.21'
+commands:
+  wp:
+    description: Waypoint commands
+    usage: /<command> [ui|set|tp|tpp|del|reload]
+    permission: waypoints.use    # ← この権限がある人が /wp を実行可能
+    permission-message: You don't have permission.
+
+permissions:
+  waypoints.use:
+    description: ウェイポイント機能を使う（/wp 実行権）
+    default: true                 # ← 全員可
+  waypoints.create:
+    description: 座標を登録（/wp set）
+    default: true                 # ← 全員可
+  waypoints.delete:
+    description: 座標を削除（UIの右クリック削除）
+    default: true                 # ← 全員可
+  waypoints.tpp:
+    description: プレイヤーの場所へテレポート（/wp tpp）
+    default: true                 # ← 全員可
+  waypoints.reload:
+    description: 設定/メッセージ再読み込み（/wp reload）
+    default: op                   # ← 管理者のみ（全員可にしたい場合は true）
