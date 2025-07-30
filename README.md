@@ -13,6 +13,8 @@ Optionally, the plugin **autoplaces a “menu opener” item** in the **leftmost
 - **Two‑step deletion in GUI** (Right‑click to arm → Right‑click again within 10s to confirm).
 - **(Optional) Hotbar opener item**: automatically placed at slot `0` for all players; right‑click opens the GUI.
 - **Localizable messages** via `messages.yml` using **MiniMessage** tags.
+- **Creator shown in lore**: each waypoint item displays the creator’s name in its lore.
+- **Shared repository**: waypoints are stored server‑side and shared across players.
 
 ---
 
@@ -42,6 +44,10 @@ Optionally, the plugin **autoplaces a “menu opener” item** in the **leftmost
 | `/wp reload` | Reload `messages.yml` (and other future configs). |
 
 > Deleting waypoints is done from the GUI (two‑step right‑click confirm).
+
+**About `[yaw pitch]`:**  
+- `yaw` = horizontal rotation (0=south, 90=west, 180=north, -90/270=east).  
+- `pitch` = vertical rotation (0=straight ahead, +90=down, -90=up).
 
 ---
 
@@ -77,7 +83,7 @@ Defined in `plugin.yml`. The defaults below make the plugin usable by everyone (
 
 ## Build from source
 
-This project uses **Gradle (Kotlin DSL)**. A shaded JAR can be produced with the Shadow plugin if needed.
+This project uses **Gradle (Kotlin DSL)**.
 
 ```bash
 # Windows
