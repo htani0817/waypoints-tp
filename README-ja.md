@@ -1,15 +1,13 @@
 
 ---
 
-## `README-ja.md`
+## `README-ja.md`（日本語・置き換え）
 
 ```markdown
 # WaypointTp（PaperMC 1.21+）
 
 **座標の保存・GUI でのテレポート・2段階削除**ができる Paper プラグイン（Kotlin）。  
 オプションで、**参加中/参加時の全プレイヤーのホットバー左端（スロット0）**に**メニュー起動アイテム**を自動配布し、**右クリックで GUI** を開けます。
-
-> Paper 1.21.x（Java 21 必須）向け。アイテム/エントリの識別に **PDC**、未ロードチャンクへの TP には **`teleportAsync`** を使用します。 :contentReference[oaicite:22]{index=22}
 
 ---
 
@@ -19,24 +17,22 @@
 - **現在地の保存**（コマンド or GUI の「追加」）
 - **2段階削除**（右クリックで保留 → 10秒以内に再右クリックで確定）
 - **（任意）ホットバー0番に起動アイテム**を自動配布（右クリックで GUI）
-- **日本語メッセージ**：`messages.yml` を **MiniMessage** で装飾可能 :contentReference[oaicite:23]{index=23}
+- **日本語メッセージ**：`messages.yml` を **MiniMessage** で装飾可能
 
 ---
 
 ## 動作要件
 
 - **Paper 1.21.x**
-- **Java 21**（Paper の要件） :contentReference[oaicite:24]{index=24}
-
-Java の導入は Paper 公式のガイドが参考になります。 :contentReference[oaicite:25]{index=25}
+- **Java 21 以上**
 
 ---
 
-## 使い方（導入）
+## 導入手順
 
-1. 本プラグインの JAR を取得（下記「ビルド」参照）。  
+1. JAR を用意（下記「ビルド」参照）。  
 2. サーバーの `plugins/` に配置。  
-3. サーバーを起動（Paper については公式の「はじめに」を参照）。 :contentReference[oaicite:26]{index=26}
+3. サーバーを起動（Paper が自動でロードします）。
 
 ---
 
@@ -45,8 +41,8 @@ Java の導入は Paper 公式のガイドが参考になります。 :contentRe
 | コマンド | 説明 |
 |---|---|
 | `/wp ui` | GUI を開く |
-| `/wp set <name>` | 現在地を `<name>` で保存 |
-| `/wp tp <name>` | 保存済み `<name>` にテレポート（`teleportAsync` を使用） :contentReference[oaicite:27]{index=27} |
+| `/wp set <name> [x y z] [yaw pitch] [world]` | ウェイポイントを保存。省略した値は **現在の** x/y/z・yaw/pitch・ワールドが使われます。例：`/wp set home 100 64 -30`、`/wp set base 0 80 0 180 0 world_nether` |
+| `/wp tp <name>` | 保存済み `<name>` にテレポート（`teleportAsync` を使用） |
 | `/wp tpp <player>` | 指定プレイヤーの位置へテレポート |
 | `/wp reload` | `messages.yml` などを再読み込み |
 
@@ -56,7 +52,7 @@ Java の導入は Paper 公式のガイドが参考になります。 :contentRe
 
 ## 権限
 
-`plugin.yml` に権限ノードを定義しています。**`default: true`** にすると **OP 以外も含め全員が使用可** になります。指定可能な既定値は `true` / `false` / `op` / `not op` です。 :contentReference[oaicite:28]{index=28}
+`plugin.yml` に定義。既定値は次の通りです（`reload` 以外は全員使用可）。
 
 | ノード | 既定 | 役割 |
 |---|---:|---|
@@ -70,24 +66,21 @@ Java の導入は Paper 公式のガイドが参考になります。 :contentRe
 
 ## 設定
 
-- `messages.yml`：表示メッセージを管理。**MiniMessage** のタグで色/装飾やクリック動作も指定できます。 :contentReference[oaicite:29]{index=29}  
-- 反映は `/wp reload` で可能。
+- `messages.yml`：表示メッセージ（MiniMessage のタグに対応）  
+  `/wp reload` で即時反映。
 
 ---
 
-## 実装メモ（仕組み）
+## 実装メモ
 
-- **GUI 識別**：`InventoryHolder` を自作して自前メニューのみを確実に判定（タイトル比較より安全）。プロジェクト構成の基本は Paper のセットアップガイドが参考。 :contentReference[oaicite:30]{index=30}
-- **ID 管理**：アイテム/エントリに **PDC（Persistent Data Container）** で UUID を埋め込み、クリック時に取り出し。 :contentReference[oaicite:31]{index=31}
-- **テレポート**：未ロードチャンクの可能性があるため **`teleportAsync`** を使用。同期チャンクロードを避け、メインスレッドへの負担を減らします。 :contentReference[oaicite:32]{index=32}
-- **起動アイテム配布**：`PlayerJoinEvent` と `Bukkit.getOnlinePlayers()` を用いて、参加時と起動直後に一括適用。 :contentReference[oaicite:33]{index=33}
+- **GUI 識別**：`InventoryHolder` で自作メニューのみ判定
+- **ID 管理**：アイテム/エントリに **PDC**（`ItemMeta` の PDC）で UUID を埋め込み
+- **TP**：未ロードチャンクに備え **`teleportAsync`** を使用
+- **配布**：`PlayerJoinEvent` と `Bukkit.getOnlinePlayers()` で参加時/起動直後に一括適用
 
 ---
 
-## ビルド（ソースから）
-
-本プロジェクトは **Gradle（Kotlin DSL）** と **Shadow プラグイン**で配布用 JAR（依存込み）を生成します。  
-Shadow のプラグイン ID は `com.gradleup.shadow`。 :contentReference[oaicite:34]{index=34}
+## ビルド
 
 ```bash
 # Windows

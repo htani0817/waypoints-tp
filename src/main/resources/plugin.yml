@@ -5,7 +5,7 @@ api-version: '1.21'
 commands:
   wp:
     description: Waypoint commands
-    usage: /<command> [ui|set|tp|tpp|del|reload]
+    usage: "/<command> [ui|set|tp|tpp|del|reload]\n/<command> set <name> [x y z] [yaw pitch] [world]"
     permission: waypoints.use    # ← この権限がある人が /wp を実行可能
     permission-message: You don't have permission.
 
