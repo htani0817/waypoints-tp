@@ -5,7 +5,9 @@ import org.bukkit.plugin.java.JavaPlugin
 
 object Keys {
     lateinit var WP_ID: NamespacedKey
+    lateinit var WP_OPENER: NamespacedKey
     fun init(plugin: JavaPlugin) {
         WP_ID = NamespacedKey(plugin, "wp_id")
+        WP_OPENER = NamespacedKey(plugin, "wp_opener")
     }
 }
