@@ -1,4 +1,5 @@
 # WaypointTp (PaperMC 1.21+)
+[日本語版README](README-ja.md)
 
 A lightweight Paper plugin (Kotlin) that lets players **save locations**, **teleport via a GUI**, and **delete waypoints with a two‑step confirm**.  
 Optionally, the plugin **autoplaces a “menu opener” item** in the **leftmost hotbar slot (slot 0)** for every online/joining player; right‑click it to open the menu.
