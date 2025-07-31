@@ -13,13 +13,14 @@ import org.bukkit.event.inventory.ClickType
 import org.bukkit.event.inventory.InventoryClickEvent
 import org.bukkit.persistence.PersistentDataType
 import org.bukkit.plugin.java.JavaPlugin
-import org.bukkit.scheduler.BukkitRunnable   // ★ 追加
+import org.bukkit.scheduler.BukkitRunnable
 import java.util.*
 
 class MenuListener(
     private val plugin: JavaPlugin,
     private val repo: YamlWaypointRepository,
-    private val messages: Messages
+    private val messages: Messages,
+    private val namePrompt: AnvilNamePrompt   // ★ 追加
 ) : Listener {
 
     private val pendingDelete = mutableMapOf<UUID, UUID>() // playerUUID -> waypointId
@@ -36,23 +37,38 @@ class MenuListener(
         // 自作GUI以外（プレイヤーインベントリ側）のクリックは無視
         if (e.clickedInventory != e.view.topInventory) return
 
-        // 追加ボタン（スロット53, LODESTONE）
+        // ★ 追加ボタン（スロット53, LODESTONE）→ 金床で名前入力 → 保存
         if (item.type == Material.LODESTONE && e.slot == 53) {
             val loc = p.location
-            val id = UUID.randomUUID()
-            repo.saveById(
-                id = id, name = "wp-${System.currentTimeMillis()}",
-                world = loc.world!!.uid, x = loc.x, y = loc.y, z = loc.z,
-                yaw = loc.yaw, pitch = loc.pitch, creator = p.uniqueId
-            )
-            p.sendMessage(messages.text("saved", mapOf("name" to "wp-${id.toString().substring(0, 8)}")))
+            val suggested = "wp-${System.currentTimeMillis()}"
 
-            // ★ 次のtickで安全にUIを開き直す（オーバーロード曖昧性を回避）
-            object : BukkitRunnable() {
-                override fun run() {
-                    WaypointMenu(repo).open(p, holder.page)
+            // 1) いったん閉じる
+            p.closeInventory()
+
+            // 2) 金床を開いて入力（キャンセルは null）
+            namePrompt.open(p, suggested) { typed ->
+                if (typed.isNullOrBlank()) {
+                    // キャンセル時は元のページを開き直し
+                    object : BukkitRunnable() {
+                        override fun run() { WaypointMenu(repo).open(p, holder.page) }
+                    }.runTask(plugin)
+                    return@open
                 }
-            }.runTask(plugin)
+
+                // 3) 入力名で保存
+                val id = UUID.randomUUID()
+                repo.saveById(
+                    id = id, name = typed,
+                    world = loc.world!!.uid, x = loc.x, y = loc.y, z = loc.z,
+                    yaw = loc.yaw, pitch = loc.pitch, creator = p.uniqueId
+                )
+                p.sendMessage(messages.text("saved", mapOf("name" to typed)))
+
+                // 4) 次tickでGUIを再表示
+                object : BukkitRunnable() {
+                    override fun run() { WaypointMenu(repo).open(p, holder.page) }
+                }.runTask(plugin)
+            }
             return
         }
 
@@ -75,12 +91,8 @@ class MenuListener(
                     repo.delete(id)
                     pendingDelete.remove(p.uniqueId)
                     p.sendMessage(messages.text("deleted"))
-
-                    // ★ 削除後も次のtickで再描画（同tickのopenは避ける）
                     object : BukkitRunnable() {
-                        override fun run() {
-                            WaypointMenu(repo).open(p, holder.page)
-                        }
+                        override fun run() { WaypointMenu(repo).open(p, holder.page) }
                     }.runTask(plugin)
                 } else {
                     pendingDelete[p.uniqueId] = id
