@@ -8,6 +8,7 @@ import com.example.waypointTp.util.Keys
 // ★ 追加
 import com.example.waypointTp.ui.OpenMenuItemListener
 import com.example.waypointTp.ui.OpenerDistributor
+import com.example.waypointTp.ui.AnvilNamePrompt      // ★ 追加
 
 import org.bukkit.plugin.java.JavaPlugin
 
@@ -25,12 +26,16 @@ class WaypointTp : JavaPlugin() {
             tabCompleter = WpTab(repo)
         }
 
-        server.pluginManager.registerEvents(MenuListener(this, repo, messages), this)
+        // ★ 金床プロンプトを用意してイベント登録
+        val namePrompt = AnvilNamePrompt(this)
+        server.pluginManager.registerEvents(namePrompt, this)
 
-        // ★ 追加：専用アイテムの右クリックで GUI を開く
+        // ★ MenuListener に namePrompt を渡す（シグネチャ更新）
+        server.pluginManager.registerEvents(MenuListener(this, repo, messages, namePrompt), this)
+
+        // 起動アイテム関連
         server.pluginManager.registerEvents(OpenMenuItemListener(this, repo), this)
 
-        // ★ 追加：全員の左端へ専用アイテムを常時用意（参加時＋起動直後に適用）
         val distributor = OpenerDistributor(this, repo)
         server.pluginManager.registerEvents(distributor, this)
         distributor.ensureForAllOnline()
