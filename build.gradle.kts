@@ -5,7 +5,7 @@ plugins {
 }
 
 group = "com.example"
-version = "1.0-SNAPSHOT"
+version = "1.1-Release"
 
 repositories {
     maven { url = uri("https://repo.papermc.io/repository/maven-public/") } // Paper
