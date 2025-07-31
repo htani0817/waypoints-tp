@@ -24,6 +24,19 @@ java {
 }
 
 tasks {
+    // ★ 追加: plugin.yml の ${version} を Gradle の project.version で置換
+    processResources {
+        // resources ディレクトリ直下の plugin.yml を対象に展開
+        filesMatching("plugin.yml") {
+            expand(
+                mapOf(
+                    "version" to project.version    // ← gradle.properties の version が入る
+                )
+            )
+            filteringCharset = "UTF-8"
+        }
+    }
+
     // 依存を同梱した実行用JARを生成（分類子なし = そのまま配布用に）
     shadowJar {
         archiveClassifier.set("")
