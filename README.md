@@ -9,7 +9,8 @@
 
 - **インベントリ GUI** から一覧/テレポート
 - **現在地の保存**（コマンド `/wp set` または GUI の「追加」）
-- **金床リネーム対応**：GUI の「📍 現在地を登録」（スロット53）を押すと**金床の入力画面**が開き、**任意の名前**で保存できます
+- **金床リネーム（ゴースト入力）**：GUI の「📍 現在地を登録」（スロット53）を押すと**金床の入力画面**が開き、**任意の名前**で保存できます。  
+  この金床は **入力専用（ゴースト）** で、置いた紙は**手元に残りません**（クリック/ドラッグ/シフト・数字キーの移動を禁止し、閉じる際に上段インベントリをクリア）。 :contentReference[oaicite:0]{index=0}
 - **2段階削除**（右クリックで保留 → 10秒以内に再右クリックで確定）
 - **（任意）ホットバー0番に起動アイテム**を自動配布（右クリックで GUI を開く）
 - **メッセージの日本語化**：`messages.yml` によるローカライズ（MiniMessage で装飾可能）
@@ -22,7 +23,7 @@
 ## 動作要件
 
 - **Paper 1.21.x**
-- **Java 21 以上**（Paper 1.21 は Java 21 以上が必須）
+- **Java 21 以上**（Paper 1.21 は Java 21 以上が必須） 。 :contentReference[oaicite:1]{index=1}
 
 ---
 
@@ -39,6 +40,8 @@
 1. `/wp ui` またはオープナー（コンパス）を右クリックして **GUI** を開く
 2. **右下の「📍 現在地を登録」**（スロット 53）をクリック
 3. **金床の入力画面**が開くので、保存したい**名前**を入力して**右側の結果スロット**をクリック
+    - 金床は **MenuType API（`MenuType.ANVIL`）** を使用して開き、**`AnvilView#getRenameText()`** から入力文字列を取得します。 :contentReference[oaicite:2]{index=2}
+    - この画面の紙は**手元に残りません**（入力専用のゴースト）。
 4. 入力した名前で**現在地が保存**され、GUI に戻ります（キャンセルした場合は保存されません）
 
 ---
@@ -55,7 +58,7 @@
 | `/wp reload` | `messages.yml` などを再読み込み |
 
 > **テレポートについて**  
-> 未ロードチャンクへ移動する可能性がある場合は、**`teleportAsync` を使用**すると**同期チャンク読み込みを避けられ**、メインスレッド負荷を軽減できます。
+> 未ロードチャンクへ移動する可能性がある場合は、**`teleportAsync` を使用**すると**同期チャンク読み込みを避けられ**、メインスレッド負荷を軽減できます。 :contentReference[oaicite:3]{index=3}
 
 ---
 
@@ -87,11 +90,15 @@
 ## 実装メモ（技術）
 
 - **GUI 識別**：`InventoryHolder` を実装した独自ホルダーで自作メニューのみを判定
-- **識別情報（ID）**：アイテム／エントリに **PDC（Persistent Data Container）** で UUID を保持（`ItemMeta` の `PersistentDataContainer`）
+- **識別情報（ID）**：アイテム／エントリに **PDC（Persistent Data Container）** で UUID を保持（`ItemMeta` の `PersistentDataContainer`）。 :contentReference[oaicite:4]{index=4}
 - **右クリック検知**：`PlayerInteractEvent` は左右の手で発火するため、**`EquipmentSlot.HAND`（メイン手）**のみ処理
 - **オープナー配布**：インベントリの空きは `Inventory#firstEmpty()` で判定。空きがなければ足元にドロップ
-- **金床入力**：Paper 1.21 の **MenuType API**（`MenuType.ANVIL`）で金床 UI を開き、**`AnvilView#getRenameText()`** から入力文字を取得
-- **テレポート**：未ロードチャンク対策として **`teleportAsync`** を使用
+- **金床入力（ゴースト化）**：
+    - **MenuType API** で金床を開き、**`AnvilView#getRenameText()`** から入力を取得。 :contentReference[oaicite:5]{index=5}
+    - **クリック抑止**：金床上段の **入力スロット(0,1)** へのクリックをキャンセル。**シフトクリック / 数字キー（`ClickType.NUMBER_KEY`）**による移動もキャンセル。 :contentReference[oaicite:6]{index=6}
+    - **ドラッグ抑止**：`InventoryDragEvent` の **raw slot 0..2** を含むドラッグをキャンセル。 :contentReference[oaicite:7]{index=7}
+    - **クローズ時**：上段インベントリを **`clear()`** して残留/返却/ドロップを防止（＝紙は手元に残らない）。
+- **テレポート**：未ロードチャンク対策として **`teleportAsync`** を使用。 :contentReference[oaicite:8]{index=8}
 
 ---
 
