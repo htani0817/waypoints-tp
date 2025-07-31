@@ -1,4 +1,3 @@
-// src/main/kotlin/com/example/waypointTp/ui/MenuListener.kt
 package com.example.waypointTp.ui
 
 import com.example.waypointTp.i18n.Messages
@@ -20,7 +19,7 @@ class MenuListener(
     private val plugin: JavaPlugin,
     private val repo: YamlWaypointRepository,
     private val messages: Messages,
-    private val namePrompt: AnvilNamePrompt   // ★ 追加
+    private val namePrompt: AnvilNamePrompt   // 金床入力
 ) : Listener {
 
     private val pendingDelete = mutableMapOf<UUID, UUID>() // playerUUID -> waypointId
@@ -37,25 +36,26 @@ class MenuListener(
         // 自作GUI以外（プレイヤーインベントリ側）のクリックは無視
         if (e.clickedInventory != e.view.topInventory) return
 
-        // ★ 追加ボタン（スロット53, LODESTONE）→ 金床で名前入力 → 保存
-        if (item.type == Material.LODESTONE && e.slot == 53) {
+        // ◀ 前へ（45）
+        if (e.slot == 45 && item.type == Material.ARROW) {
+            object : BukkitRunnable() {
+                override fun run() { WaypointMenu(repo).open(p, holder.page - 1) }
+            }.runTask(plugin)
+            return
+        }
+
+        // 📍 追加（49）→ 金床で名前入力 → 保存
+        if (e.slot == 49 && item.type == Material.LODESTONE) {
             val loc = p.location
             val suggested = "wp-${System.currentTimeMillis()}"
-
-            // 1) いったん閉じる
             p.closeInventory()
-
-            // 2) 金床を開いて入力（キャンセルは null）
             namePrompt.open(p, suggested) { typed ->
                 if (typed.isNullOrBlank()) {
-                    // キャンセル時は元のページを開き直し
                     object : BukkitRunnable() {
                         override fun run() { WaypointMenu(repo).open(p, holder.page) }
                     }.runTask(plugin)
                     return@open
                 }
-
-                // 3) 入力名で保存
                 val id = UUID.randomUUID()
                 repo.saveById(
                     id = id, name = typed,
@@ -63,8 +63,6 @@ class MenuListener(
                     yaw = loc.yaw, pitch = loc.pitch, creator = p.uniqueId
                 )
                 p.sendMessage(messages.text("saved", mapOf("name" to typed)))
-
-                // 4) 次tickでGUIを再表示
                 object : BukkitRunnable() {
                     override fun run() { WaypointMenu(repo).open(p, holder.page) }
                 }.runTask(plugin)
@@ -72,7 +70,15 @@ class MenuListener(
             return
         }
 
-        // Waypoint アイテム（PDCにIDを持たせている）
+        // ▶ 次へ（53）
+        if (e.slot == 53 && item.type == Material.ARROW) {
+            object : BukkitRunnable() {
+                override fun run() { WaypointMenu(repo).open(p, holder.page + 1) }
+            }.runTask(plugin)
+            return
+        }
+
+        // --- Waypoint アイテム（PDCにIDを持たせている） ---
         val meta = item.itemMeta ?: return
         val idStr = meta.persistentDataContainer.get(Keys.WP_ID, PersistentDataType.STRING) ?: return
         val id = runCatching { UUID.fromString(idStr) }.getOrNull() ?: return
@@ -92,7 +98,7 @@ class MenuListener(
                     pendingDelete.remove(p.uniqueId)
                     p.sendMessage(messages.text("deleted"))
                     object : BukkitRunnable() {
-                        override fun run() { WaypointMenu(repo).open(p, holder.page) }
+                        override fun run() { WaypointMenu(repo).open(p, holder.page) } // open側でclamp
                     }.runTask(plugin)
                 } else {
                     pendingDelete[p.uniqueId] = id
