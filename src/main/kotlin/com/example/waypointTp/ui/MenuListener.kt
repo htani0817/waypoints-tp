@@ -56,7 +56,9 @@ class MenuListener(
 
     private fun deleteWith2Step(p: Player, id: UUID, page: Int) {
         val wp = repo.find(id) ?: return
-        val canDelete = wp.creator == p.uniqueId
+
+        // ★ creator が null / 0UUID の場合は「削除不可」にする
+        val canDelete = wp.creator != null && wp.creator == p.uniqueId
 
         if (!canDelete) {
             p.sendMessage(messages.text("delete_not_owner"))

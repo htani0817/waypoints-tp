@@ -14,9 +14,10 @@ import org.bukkit.entity.Player
 import org.bukkit.persistence.PersistentDataType                       // ★ 追加
 import org.bukkit.plugin.java.JavaPlugin
 import java.util.UUID
+import com.example.waypointTp.WaypointTp
 
 class WpCommand(
-    private val plugin: JavaPlugin,
+    private val plugin: WaypointTp,
     private val repo: YamlWaypointRepository,
     private val messages: Messages
 ) : CommandExecutor {
@@ -36,6 +37,11 @@ class WpCommand(
             "reload" -> {
                 if (!sender.hasPermission("waypoints.reload")) { sender.sendMessage(messages.text("no_permission")); return true }
                 messages.load()
+                sender.sendMessage(messages.text("reloaded"))
+                if (!sender.hasPermission("waypoints.reload")) {
+                    sender.sendMessage(messages.text("no_permission")); return true
+                }
+                plugin.reloadAll()                              // ← 変更点
                 sender.sendMessage(messages.text("reloaded"))
                 return true
             }

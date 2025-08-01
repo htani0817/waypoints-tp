@@ -42,4 +42,15 @@ class WaypointTp : JavaPlugin() {
 
         logger.info("WaypointTp enabled")
     }
+
+    fun reloadAll() {
+        // 1) config.yml だけ再読込
+        reloadConfig()
+
+        // 2) messages.yml を再読込
+        messages.load()
+
+        // ★ repo（waypoints.yml）は読み直さない ＝ 既存データはそのまま
+        logger.info("WaypointTp: config & messages reloaded (waypoints untouched)")
+    }
 }
