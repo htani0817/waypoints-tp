@@ -56,7 +56,7 @@ class MenuListener(
 
     private fun deleteWith2Step(p: Player, id: UUID, page: Int) {
         val wp = repo.find(id) ?: return
-        val canDelete = (wp.creator == p.uniqueId) || p.hasPermission("waypoints.delete.any")
+        val canDelete = wp.creator == p.uniqueId
 
         if (!canDelete) {
             p.sendMessage(messages.text("delete_not_owner"))
