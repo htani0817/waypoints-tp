@@ -18,3 +18,4 @@ opener_given_self: "<green>ウェイポイントメニューのアイテムを�
 opener_given_to: "<green><player></green> にウェイポイントメニューのアイテムを配布しました。"
 opener_already: "<yellow><player></yellow> は既にメニューアイテムを所持しています。"
 inventory_full: "<yellow>インベントリが満杯のため、足元にドロップしました。</yellow>"
+delete_not_owner: "<red>このウェイポイントはあなたが作成していません！"

@@ -32,3 +32,6 @@ permissions:
   waypoints.opener.others:
     description: 他人にオープナーを配布（/wp give <player>）
     default: op
+  waypoints.delete.any:       # ★ 追加
+    description: 他人のウェイポイントも削除できる
+    default: op               # OP のみ許可。完全禁止なら false
