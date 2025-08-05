@@ -4,25 +4,23 @@ package com.example.waypointTp
 import com.example.waypointTp.i18n.Messages
 import com.example.waypointTp.repo.YamlWaypointRepository
 import com.example.waypointTp.ui.WaypointMenu
-import com.example.waypointTp.ui.OpenMenuItemListener                 // ★ 追加
-import com.example.waypointTp.util.Keys                               // ★ 追加
+import com.example.waypointTp.ui.OpenMenuItemListener
+import com.example.waypointTp.util.Keys
 import org.bukkit.Bukkit
 import org.bukkit.command.Command
 import org.bukkit.command.CommandExecutor
 import org.bukkit.command.CommandSender
 import org.bukkit.entity.Player
-import org.bukkit.persistence.PersistentDataType                       // ★ 追加
-import org.bukkit.plugin.java.JavaPlugin
+import org.bukkit.persistence.PersistentDataType
 import java.util.UUID
-import com.example.waypointTp.WaypointTp
 
 class WpCommand(
-    private val plugin: WaypointTp,
+    private val plugin: WaypointTp,                // WaypointTp を受け取る
     private val repo: YamlWaypointRepository,
     private val messages: Messages
 ) : CommandExecutor {
 
-    // ★ 追加：すでに専用アイテムを持っているか（PDC タグで判定）
+    // すでに専用アイテムを持っているか（PDC タグで判定）
     private fun hasOpener(p: Player): Boolean {
         return p.inventory.contents.any { stack ->
             val meta = stack?.itemMeta ?: return@any false
@@ -35,21 +33,21 @@ class WpCommand(
 
         when (args[0].lowercase()) {
             "reload" -> {
-                if (!sender.hasPermission("waypoints.reload")) { sender.sendMessage(messages.text("no_permission")); return true }
-                messages.load()
-                sender.sendMessage(messages.text("reloaded"))
                 if (!sender.hasPermission("waypoints.reload")) {
                     sender.sendMessage(messages.text("no_permission")); return true
                 }
-                plugin.reloadAll()                              // ← 変更点
+                // config.yml / messages.yml のみ再読み込み（waypoints.yml は触らない）
+                plugin.reloadAll()
                 sender.sendMessage(messages.text("reloaded"))
                 return true
             }
+
             "ui" -> {
                 if (sender !is Player) { sender.sendMessage(messages.text("player_only")); return true }
                 WaypointMenu(repo).open(sender, 0)
                 return true
             }
+
             "set" -> {
                 if (sender !is Player) { sender.sendMessage(messages.text("player_only")); return true }
                 if (!sender.hasPermission("waypoints.create")) { sender.sendMessage(messages.text("no_permission")); return true }
@@ -136,6 +134,7 @@ class WpCommand(
                 )
                 return true
             }
+
             "tp" -> {
                 if (sender !is Player) { sender.sendMessage(messages.text("player_only")); return true }
                 val name = args.getOrNull(1) ?: return sender.sendMessage(messages.text("usage_wp")).let { true }
@@ -147,6 +146,7 @@ class WpCommand(
                 }
                 return true
             }
+
             "tpp" -> {
                 if (sender !is Player) { sender.sendMessage(messages.text("player_only")); return true }
                 val target = args.getOrNull(1)?.let { Bukkit.getPlayerExact(it) }
@@ -157,7 +157,8 @@ class WpCommand(
                 }
                 return true
             }
-            // ★ 追加：オープナー配布コマンド
+
+            // オープナー配布コマンド
             "give" -> {
                 // /wp give [player]
                 val target: Player? = when {
@@ -184,13 +185,22 @@ class WpCommand(
                 }
 
                 val opener = OpenMenuItemListener.createOpenerItem()
-                val empty = target.inventory.firstEmpty()                 // 空きスロット。-1なら満杯
-                if (empty != -1) {
-                    target.inventory.setItem(empty, opener)
+                val SLOT = 8  // ★ 右端に配置
+                val cur = target.inventory.getItem(SLOT)
+                if (cur == null || cur.type.isAir) {
+                    // 8番が空いていれば最優先で置く
+                    target.inventory.setItem(SLOT, opener)
                     target.updateInventory()
                 } else {
-                    target.world.dropItemNaturally(target.location, opener)
-                    sender.sendMessage(messages.text("inventory_full"))
+                    // 空きスロットがあればそこへ、無ければ足元へドロップ
+                    val empty = target.inventory.firstEmpty()
+                    if (empty != -1) {
+                        target.inventory.setItem(empty, opener)
+                        target.updateInventory()
+                    } else {
+                        target.world.dropItemNaturally(target.location, opener)
+                        sender.sendMessage(messages.text("inventory_full"))
+                    }
                 }
 
                 if (toSelf) {
@@ -201,6 +211,7 @@ class WpCommand(
                 }
                 return true
             }
+
             else -> { sender.sendMessage(messages.text("usage_wp")); return true }
         }
     }

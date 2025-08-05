@@ -18,7 +18,7 @@ class OpenerDistributor(
 ) : Listener {
 
     // ホットバーは 0..8。左端=0 を使います。
-    private val TARGET_SLOT = 0
+    private val TARGET_SLOT = 8
 
     /** プラグイン有効化時（再読み込み時等）に、既にオンラインの全員へ適用 */
     fun ensureForAllOnline() {
